@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <assert.h>
 
 class Node
 {
@@ -83,4 +84,21 @@ public:
     const std::vector<Edge*>& getEdges() const {
         return m_edges;
     }
+
+    // find a more optimized way to get score perhaps
+    double getScore(Node* inputWord, Node* goalWord) {
+        if (inputWord == nullptr || goalWord == nullptr) {
+            throw std::invalid_argument("Input and goal words must not be null");
+        }
+        double points = 0;
+
+        for (const auto& edge: m_edges) {
+            if ((edge -> getSource() == inputWord && edge -> getDestination() == goalWord) ||
+                (edge -> getSource() == goalWord  && edge -> getDestination() == inputWord))
+                points = edge -> getWeight();
+                break;
+        }
+
+        return points;
+    };
 };
