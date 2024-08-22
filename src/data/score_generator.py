@@ -34,7 +34,6 @@ for source, destination in word_pairs:
 csv_file_path = "src/data/word_bank.csv"
 with open(csv_file_path, 'w', newline='') as file:
     writer = csv.writer(file)
-    writer.writerow(["source word", "destination word", "similarity score"])
     writer.writerows(data)
 
 print(f"{csv_file_path} created!")
