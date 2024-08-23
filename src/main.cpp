@@ -2,6 +2,8 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <algorithm>
+#include <vector>
 #include "graph.hpp"
 
 /*********************************
@@ -18,9 +20,10 @@ int highestScore = 0;
 class InputBox
 {
 private:
-    std::string name;
+    std::string inputWord;
     Rectangle textBox;
     int framesCounter;
+    std::vector<std::string> all_words;
 
     void HandleTextInput()
     {
@@ -28,36 +31,50 @@ private:
 
         while (key > 0)
         {
-            if ((key >= 32 && key < 48) || (key > 57 && key <= 125) && (name.length() < MAX_INPUT_CHARS))
+            if ((key >= 32 && key < 48) || (key > 57 && key <= 125) && (inputWord.length() < MAX_INPUT_CHARS))
             {
-                name += static_cast<char>(key);
+                inputWord += static_cast<char>(key);
             }
             key = GetKeyPressed();
         }
 
-        if (IsKeyPressed(KEY_BACKSPACE) && !name.empty())
+        if (IsKeyPressed(KEY_BACKSPACE) && !inputWord.empty())
         {
-            name.pop_back();
+            inputWord.pop_back();
+        }
+    }
+
+    void HandleWordInput() {
+        if (IsKeyPressed(KEY_ENTER) && !inputWord.empty())
+        {
+            if (std::find(all_words.begin(), all_words.end(), inputWord) != all_words.end())
+            {
+                // word already exists
+                return;
+            }
+            all_words.push_back(inputWord);
+            inputWord = "";
         }
     }
 
 public:
     InputBox()
     {
-        name = "";
+        inputWord = "";
         textBox = {SCREEN_WIDTH / 2.0f - 100, 180, 225, 50};
         framesCounter = 0;
     }
 
     void Update()
     {
+        HandleWordInput();
         HandleTextInput();
         framesCounter++;
     }
 
     std::string getInputWord() const
     {
-        return name;
+        return inputWord;
     }
 
     void Draw() const
@@ -66,19 +83,24 @@ public:
 
         DrawRectangleRec(textBox, LIGHTGRAY);
         DrawRectangleLines(textBox.x, textBox.y, textBox.width, textBox.height, GRAY);
-        DrawText(name.c_str(), textBox.x + 5, textBox.y + 8, 40, MAROON);
+        DrawText(inputWord.c_str(), textBox.x + 5, textBox.y + 8, 40, MAROON);
 
-        if (name.length() < MAX_INPUT_CHARS)
+        if (inputWord.length() < MAX_INPUT_CHARS)
         {
             if ((framesCounter / 20) % 2 == 0)
             {
-                DrawText("_", static_cast<int>(textBox.x) + 8 + MeasureText(name.c_str(), 40),
+                DrawText("_", static_cast<int>(textBox.x) + 8 + MeasureText(inputWord.c_str(), 40),
                          static_cast<int>(textBox.y) + 12, 40, MAROON);
             }
         }
         else
         {
             DrawText("Press BACKSPACE to delete chars...", 230, 300, 20, GRAY);
+        }
+
+        for (unsigned int i = 0; i < all_words.size(); i++)
+        {
+            DrawText(all_words[i].c_str(), 10, 10 + 20 * i, 20, MAROON);
         }
     }
 };
@@ -154,7 +176,6 @@ public:
     int highestScore = 0;
     InputBox inputBox = InputBox();
     Timer timer = Timer();
-    std::vector<std::string> all_words;
     // ScoreGraph scoring_system;
 
     void Update()

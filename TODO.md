@@ -1,0 +1,6 @@
+- [ ] Words overflow in y
+- [ ] Text format and overall style
+- [ ] Input box words overflow currently in y
+- [ ] Show each word's score 
+- [ ] Show current score and highest score
+- [ ] Refactoring, optimization, and clean up
