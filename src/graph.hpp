@@ -101,7 +101,7 @@ public:
     }
 
     // find a more optimized way to get score perhaps
-    double getScore(Node *inputNode, Node *goalNode)
+    int getScore(Node *inputNode, Node *goalNode)
     {
         if (inputNode == nullptr || goalNode == nullptr)
         {

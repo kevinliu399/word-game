@@ -4,6 +4,7 @@
 #include <string>
 #include <algorithm>
 #include <vector>
+#include <random>
 #include "graph.hpp"
 
 /*********************************
@@ -17,6 +18,33 @@ const int MAX_INPUT_CHARS = 30;
 
 int highestScore = 0;
 
+// Create a graph from the data in the word_bank.csv file
+ScoreGraph CreateGraph()
+{
+    ScoreGraph scoring_system;
+
+    std::ifstream file("src/data/word_bank.csv");
+    std::string line;
+
+    while (std::getline(file, line))
+    {
+
+        // data is in format : src_word,dest_word,weight
+        std::string src_word = line.substr(0, line.find(","));
+        line.erase(0, line.find(",") + 1);
+        std::string dest_word = line.substr(0, line.find(","));
+        line.erase(0, line.find(",") + 1);
+        std::string str = line;
+        double weight = stod(line);
+
+        scoring_system.addNode(src_word);
+        scoring_system.addNode(dest_word);
+        scoring_system.addEdge(src_word, dest_word, weight);
+    }
+
+    return scoring_system;
+}
+
 class InputBox
 {
 private:
@@ -24,18 +52,22 @@ private:
     Rectangle textBox;
     int framesCounter;
     std::vector<std::string> all_words;
+    std::string goalWord;
+    int score;
+    ScoreGraph scoring_system;
+    Node *goalNode;
 
     void HandleTextInput()
     {
-        int key = GetKeyPressed();
+        int key = GetCharPressed();
 
         while (key > 0)
         {
-            if ((key >= 32 && key < 48) || (key > 57 && key <= 125) && (inputWord.length() < MAX_INPUT_CHARS))
+            if ((key >= 'a' && key <= 'z') && inputWord.length() < MAX_INPUT_CHARS)
             {
                 inputWord += static_cast<char>(key);
             }
-            key = GetKeyPressed();
+            key = GetCharPressed();
         }
 
         if (IsKeyPressed(KEY_BACKSPACE) && !inputWord.empty())
@@ -44,7 +76,8 @@ private:
         }
     }
 
-    void HandleWordInput() {
+    void HandlePoints()
+    {
         if (IsKeyPressed(KEY_ENTER) && !inputWord.empty())
         {
             if (std::find(all_words.begin(), all_words.end(), inputWord) != all_words.end())
@@ -52,9 +85,50 @@ private:
                 // word already exists
                 return;
             }
+
+            Node *inputNode = scoring_system.getNode(inputWord);
+
+            if (inputNode == nullptr)
+            {
+                std::cout << "Input word not found in graph" << std::endl;
+                return;
+            }
             all_words.push_back(inputWord);
-            inputWord = "";
+
+            int points = scoring_system.getScore(inputNode, goalNode);
+            std::cout << "Points: " << points << std::endl;
+
+            score += points;
+            std::cout << "Score: " << score << std::endl;
+
+            inputWord = ""; // clear the input box
         }
+    }
+
+    // Get a random word from all_word.txt
+    std::string GetRandomWord()
+    {
+        std::ifstream file("./src/data/all_word.txt");
+        std::vector<std::string> words;
+        std::string word;
+
+        while (std::getline(file, word))
+        {
+            words.push_back(word);
+        }
+
+        if (words.empty())
+        {
+            return "No words found";
+        }
+
+        // Seed the random number generator
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dist(0, words.size() - 1);
+        std::string random_word = words[dist(gen)];
+
+        return random_word;
     }
 
 public:
@@ -63,23 +137,27 @@ public:
         inputWord = "";
         textBox = {SCREEN_WIDTH / 2.0f - 100, 180, 225, 50};
         framesCounter = 0;
+        score = 0;
+        scoring_system = CreateGraph();
+        goalWord = GetRandomWord();
+        goalNode = scoring_system.getNode(goalWord);
+
+        if (goalNode == nullptr)
+        {
+            std::cout << "Goal word not found in graph" << std::endl;
+        }
     }
 
     void Update()
     {
-        HandleWordInput();
+        HandlePoints();
         HandleTextInput();
         framesCounter++;
     }
 
-    std::string getInputWord() const
-    {
-        return inputWord;
-    }
-
     void Draw() const
     {
-        DrawText("Type a word!", 240, 140, 20, DARKGRAY);
+        DrawText(TextFormat("Goal word: %s", goalWord.c_str()), 240, 140, 20, DARKGRAY);
 
         DrawRectangleRec(textBox, LIGHTGRAY);
         DrawRectangleLines(textBox.x, textBox.y, textBox.width, textBox.height, GRAY);
@@ -102,6 +180,26 @@ public:
         {
             DrawText(all_words[i].c_str(), 10, 10 + 20 * i, 20, MAROON);
         }
+    }
+
+    std::string getGoalWord() const
+    {
+        return goalWord;
+    }
+
+    std::string getInputWord() const
+    {
+        return inputWord;
+    }
+
+    int getScore() const
+    {
+        return score;
+    }
+
+    void setScore(int newScore)
+    {
+        score = newScore;
     }
 };
 
@@ -143,40 +241,11 @@ private:
     int m_frameCount;
 };
 
-// Create a graph from the data in the word_bank.csv file
-ScoreGraph CreateGraph()
-{
-    ScoreGraph scoring_system;
-
-    std::ifstream file("src/data/word_bank.csv");
-    std::string line;
-
-    while (std::getline(file, line))
-    {
-
-        // data is in format : src_word,dest_word,weight
-        std::string src_word = line.substr(0, line.find(","));
-        line.erase(0, line.find(",") + 1);
-        std::string dest_word = line.substr(0, line.find(","));
-        line.erase(0, line.find(",") + 1);
-        std::string str = line;
-        double weight = stod(line);
-
-        scoring_system.addNode(src_word);
-        scoring_system.addNode(dest_word);
-        scoring_system.addEdge(src_word, dest_word, weight);
-    }
-
-    return scoring_system;
-}
-
 class Game
 {
 public:
-    int highestScore = 0;
     InputBox inputBox = InputBox();
     Timer timer = Timer();
-    // ScoreGraph scoring_system;
 
     void Update()
     {
