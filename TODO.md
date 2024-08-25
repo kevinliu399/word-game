@@ -1,8 +1,0 @@
-- [x] Words overflow in y
-- [ ] Text format and overall style
-- [ ] Input box words overflow currently in y
-- [ ] Show each word's score 
-- [ ] Show current score and highest score
-- [ ] Refactoring, optimization, and clean up
-- [ ] Loading screen when booting up
-- [ ] Message showing if the word is invalid
