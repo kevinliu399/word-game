@@ -1,4 +1,4 @@
-- [ ] Words overflow in y
+- [x] Words overflow in y
 - [ ] Text format and overall style
 - [ ] Input box words overflow currently in y
 - [ ] Show each word's score 

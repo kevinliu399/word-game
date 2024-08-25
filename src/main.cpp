@@ -7,14 +7,14 @@
 #include <random>
 #include "graph.hpp"
 
-/*********************************
+/**********************************
  * Constants and global variables *
  **********************************/
 
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 450;
-const int TOTAL_TIME = 20;
-const int MAX_INPUT_CHARS = 30;
+const int TOTAL_TIME = 40;
+const int MAX_INPUT_CHARS = 20;
 
 int highestScore = 0;
 
@@ -57,6 +57,9 @@ private:
     ScoreGraph scoring_system;
     Node *goalNode;
 
+    bool invalidWordEntered;
+    std::string lastInvalidWord;
+
     void HandleTextInput()
     {
         int key = GetCharPressed();
@@ -66,6 +69,7 @@ private:
             if ((key >= 'a' && key <= 'z') && inputWord.length() < MAX_INPUT_CHARS)
             {
                 inputWord += static_cast<char>(key);
+                invalidWordEntered = false;
             }
             key = GetCharPressed();
         }
@@ -73,6 +77,7 @@ private:
         if (IsKeyPressed(KEY_BACKSPACE) && !inputWord.empty())
         {
             inputWord.pop_back();
+            invalidWordEntered = false;
         }
     }
 
@@ -87,19 +92,21 @@ private:
             }
 
             Node *inputNode = scoring_system.getNode(inputWord);
-
             if (inputNode == nullptr)
             {
-                std::cout << "Input word not found in graph" << std::endl;
+                // invalid word
+                invalidWordEntered = true;
+                lastInvalidWord = inputWord;
                 return;
             }
+
+            // valid word
+            invalidWordEntered = false;
+            lastInvalidWord = "";
             all_words.push_back(inputWord);
 
             int points = scoring_system.getScore(inputNode, goalNode);
-            std::cout << "Points: " << points << std::endl;
-
             score += points;
-            std::cout << "Score: " << score << std::endl;
 
             inputWord = ""; // clear the input box
         }
@@ -135,17 +142,15 @@ public:
     InputBox()
     {
         inputWord = "";
-        textBox = {SCREEN_WIDTH / 2.0f - 100, 180, 225, 50};
+        textBox = {SCREEN_WIDTH / 2.0f - 160, 180, 250, 50};
         framesCounter = 0;
         score = 0;
         scoring_system = CreateGraph();
         goalWord = GetRandomWord();
         goalNode = scoring_system.getNode(goalWord);
 
-        if (goalNode == nullptr)
-        {
-            std::cout << "Goal word not found in graph" << std::endl;
-        }
+        invalidWordEntered = false;
+        lastInvalidWord = "";
     }
 
     void Update()
@@ -159,16 +164,28 @@ public:
     {
         DrawText(TextFormat("Goal word: %s", goalWord.c_str()), 240, 140, 20, DARKGRAY);
 
-        DrawRectangleRec(textBox, LIGHTGRAY);
-        DrawRectangleLines(textBox.x, textBox.y, textBox.width, textBox.height, GRAY);
-        DrawText(inputWord.c_str(), textBox.x + 5, textBox.y + 8, 40, MAROON);
+        DrawRectangleRec(textBox, WHITE);
+        DrawRectangleLines(textBox.x, textBox.y, textBox.width + 25, textBox.height, GRAY);
+        DrawText(inputWord.c_str(), textBox.x + 5, textBox.y + 8, 20, MAROON);
+
+        // message for when the word was already entered
+        if (std::find(all_words.begin(), all_words.end(), inputWord) != all_words.end())
+        {
+            DrawText(TextFormat("%s already entered", inputWord.c_str()), 230, 300, 20, GRAY);
+        }
+
+        // message for invalid or non-existent word in the dict
+        else if (invalidWordEntered)
+        {
+            DrawText(TextFormat("%s is not a valid word", lastInvalidWord.c_str()), 230, 300, 20, GRAY);
+        }
 
         if (inputWord.length() < MAX_INPUT_CHARS)
         {
             if ((framesCounter / 20) % 2 == 0)
             {
-                DrawText("_", static_cast<int>(textBox.x) + 8 + MeasureText(inputWord.c_str(), 40),
-                         static_cast<int>(textBox.y) + 12, 40, MAROON);
+                DrawText("_", static_cast<int>(textBox.x) + 8 + MeasureText(inputWord.c_str(), 20),
+                         static_cast<int>(textBox.y) + 12, 20, MAROON);
             }
         }
         else
@@ -176,10 +193,7 @@ public:
             DrawText("Press BACKSPACE to delete chars...", 230, 300, 20, GRAY);
         }
 
-        for (unsigned int i = 0; i < all_words.size(); i++)
-        {
-            DrawText(all_words[i].c_str(), 10, 10 + 20 * i, 20, MAROON);
-        }
+        DrawText(TextFormat("Score: %i", score), SCREEN_WIDTH - 200, SCREEN_HEIGHT - 50, 20, MAROON);
     }
 
     std::string getGoalWord() const
@@ -212,7 +226,8 @@ public:
     {
         m_frameCount++;
         if (m_frameCount >= 60)
-        { // Update every 60 frames (1 second at 60 FPS)
+        {
+            // Update every 60 frames (1 second at 60 FPS)
             m_frameCount = 0;
             if (m_time > 0)
             {
@@ -267,11 +282,10 @@ public:
 
 int main()
 {
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "raylib [text] example - input box");
+    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Word Association Game by Kevin");
     SetTargetFPS(60);
     bool gameOver = false;
     Game game = Game();
-    // ScoreGraph scoring_system = CreateGraph();
 
     while (!WindowShouldClose())
     {
