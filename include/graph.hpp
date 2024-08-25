@@ -100,7 +100,7 @@ public:
         return m_edges;
     }
 
-    // find a more optimized way to get score perhaps
+    // TODO: find a more optimized way to get score perhaps
     int getScore(Node *inputNode, Node *goalNode)
     {
         if (inputNode == nullptr || goalNode == nullptr)

@@ -2,13 +2,15 @@
 #include "game.hpp"
 #include "constants.hpp"
 
-int main() {
+int main()
+{
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Word Association Game by Kevin");
     SetTargetFPS(60);
-    
+
     Game game;
 
-    while (!WindowShouldClose()) {
+    while (!WindowShouldClose())
+    {
         game.Update();
 
         BeginDrawing();

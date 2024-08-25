@@ -1,7 +1,8 @@
 #pragma once
 #include "raylib.h"
 
-class Timer {
+class Timer
+{
 public:
     Timer();
     void Update();

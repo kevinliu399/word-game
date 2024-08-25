@@ -2,7 +2,8 @@
 #include "input_box.hpp"
 #include "timer.hpp"
 
-class Game {
+class Game
+{
 public:
     Game();
     void Update();

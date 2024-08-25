@@ -4,7 +4,8 @@
 #include <string>
 #include <vector>
 
-class InputBox {
+class InputBox
+{
 public:
     InputBox();
     void Update();
@@ -15,13 +16,14 @@ public:
 
 private:
     std::string inputWord;
+    std::string goalWord;
     Rectangle textBox;
     int framesCounter;
-    std::vector<std::string> all_words;
-    std::string goalWord;
     int score;
+    std::vector<std::string> all_words;
     ScoreGraph scoring_system;
-    Node* goalNode;
+    Node *goalNode;
+    
     bool invalidWordEntered;
     std::string lastInvalidWord;
 

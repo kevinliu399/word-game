@@ -1,18 +1,28 @@
 #include "game.hpp"
 #include "constants.hpp"
 
+
+
+// Main game class that contains the input box and timer
+// Controls the game loop and the game over state
 Game::Game() : highestScore(0), gameOver(false) {}
 
-void Game::Update() {
-    if (!gameOver) {
+void Game::Update()
+{
+    if (!gameOver)
+    {
         inputBox.Update();
         timer.Update();
 
-        if (timer.isTimeUp()) {
+        if (timer.isTimeUp())
+        {
             gameOver = true;
         }
-    } else {
-        if (IsKeyPressed(KEY_ENTER)) {
+    }
+    else
+    {
+        if (IsKeyPressed(KEY_ENTER))
+        {
             inputBox = InputBox();
             timer = Timer();
             gameOver = false;
@@ -20,14 +30,19 @@ void Game::Update() {
     }
 }
 
-void Game::Draw() const {
-    if (!gameOver) {
+void Game::Draw() const
+{
+    if (!gameOver)
+    {
         inputBox.Draw();
         timer.Draw();
-    } else {
+    }
+    else
+    {
         int gameScore = inputBox.getScore();
-        if (gameScore > highestScore) {
-            const_cast<Game*>(this)->setHighestScore(gameScore);
+        if (gameScore > highestScore)
+        {
+            const_cast<Game *>(this)->setHighestScore(gameScore);
         }
 
         DrawText(TextFormat("Highest Score: %i", highestScore), 10, 10, 20, BLACK);
